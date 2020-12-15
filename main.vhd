@@ -15,23 +15,25 @@ ENTITY main IS
 END main;
 
 ARCHITECTURE logic OF main is
-    SIGNAL clk_1        :   std_logic := '0';
-    SIGNAL count        :   std_logic_vector(13 DOWNTO 0) := "00000000000000";
+    COMPONENT time_clk_1s IS
+        PORT (
+            clk     :       IN std_logic;
+            clk_1s  :       OUT std_logic := '0';
+        );
+    END COMPONENT;
+
+    COMPONENT time_clk_1ms IS
+        PORT (
+            clk         :       IN std_logic;
+            clk_1ms     :       OUT std_logic := '0';
+        );
+    END COMPONENT;
+
+    SIGNAL clk_1ms          :   std_logic := '0';
+    SIGNAL clk_1s           :   std_logic := '0';
 BEGIN
-    PROCESS(clk)
-        BEGIN
-            IF (rising_edge(clk)) THEN
-                IF (count = "01001110000111") THEN 
-                    count <= "00000000000000";
-                    IF (clk_1 = '0') THEN
-                        clk_1 <= '1';
-                    ELSE
-                        clk_1 <= '0';
-                    END IF;
-                ELSE 
-                    count <= count + 1;
-                END IF;
-            END IF;
-        END PROCESS;
-    
+    create_1s_clock: time_clk_1s port map (clk, clk_1s);
+    create_1ms_clock: time_clk_1ms port map (clk, clk_1ms);
+            
+
         
