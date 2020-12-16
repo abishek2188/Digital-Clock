@@ -2,26 +2,26 @@ LIBRARY IEEE;
 USE IEEE.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-ENTITY time_clk_1s IS
+ENTITY time_clk_2ms IS
     PORT (
-        clk     :       IN std_logic;
-        clk_1s  :       OUT std_logic := '0'
+        clk         :       IN std_logic;
+        clk_2ms     :       OUT std_logic := '0'
     );
-END time_clk_1s;
+END time_clk_2ms;
 
-ARCHITECTURE logic of time_clk_1s IS
-    SIGNAL count    :       std_logic_vector(23 DOWNTO 0) := '0';
+ARCHITECTURE logic of time_clk_2ms IS
+    SIGNAL count    :       std_logic_vector(14 DOWNTO 0) := '0';
     SIGNAL temp     :       std_logic := '0';
 BEGIN
     PROCESS(clk)
         BEGIN
             IF (rising_edge(clk)) THEN
-                IF (count =  "010011000100101101000000") THEN 
-                    count <= '0';
+                IF (count = "100111000011111") THEN 
+                    count <= "000000000000000";
                     IF (temp = '0') THEN
-                        clk_1s <= '1';
+                        clk_2ms <= '1';
                     ELSE
-                        clk_1s <= '0';
+                        clk_2ms <= '0';
                     END IF;
                 ELSE 
                     count <= count + 1;

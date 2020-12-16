@@ -1,10 +1,11 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.all;
+USE ieee.numeric_std.all;
 
 ENTITY time_clk_1ms IS
     PORT (
         clk         :       IN std_logic;
-        clk_1ms     :       OUT std_logic := '0';
+        clk_1ms     :       OUT std_logic := '0'
     );
 END time_clk_1ms;
 
