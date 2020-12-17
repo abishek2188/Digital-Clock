@@ -6,9 +6,9 @@ ENTITY main IS
     PORT (
         clk             :   IN  std_logic;
         b1, b2, b3, b4  :   IN  std_logic;
-        display_cathode    :   OUT unsigned(27 DOWNTO 0);
-        display_decimal :   OUT unsigned(3 DOWNTO 0) := "1111";
-        display_anode :   OUT unsigned(3 DOWNTO 0) := "0000" 
+        display_cathode    :   OUT std_logic_vector(6 DOWNTO 0) := "1111111";
+        display_decimal :   OUT std_logic_vector := '1';
+        display_anode :   OUT std_logic_vector(3 DOWNTO 0) := "0000" 
     );
 END main;
 
@@ -51,12 +51,13 @@ ARCHITECTURE logic OF main is
     TYPE state_type IS (time_hour_min, time_min_sec, change_hour1, change_hour0, change_min1, change_min0);
     TYPE state_type1 IS (display_time, change_time);
     TYPE state_type2 IS (idle, init1, init2, init3, init4);
+    TYPE state_type3 IS (flash, no_flash);
+    SIGNAL state3                                               :   state_type3 := no_flash; 
     SIGNAL state2                                               :   state_type2 := idle;
     SIGNAL state1                                               :   state_type1 := display_time;
     SIGNAL state                                                :   state_type := time_hour_min;
     SIGNAL clk_1ms                                              :   std_logic := '0';
     SIGNAL clk_1s                                               :   std_logic := '0';
-    SIGNAL clk_2ms                                               :   std_logic := '0';
     SIGNAL clk_8ms                                               :   std_logic := '0';
     SIGNAL minute, temp_minute, second, temp_second, hour, temp_hour     :   unsigned(6 DOWNTO 0) := '0';
     SIGNAL refresh                                              :   unsigned(1 DOWNTO 0) := '0';
@@ -90,9 +91,9 @@ BEGIN
             CASE state IS
                 WHEN time_hour_min =>
                     if rising_edge(clk_1s) THEN
-                        display_decimal(0) <= '0';
+                        state3 <= flash;
                     ELSE
-                        display_decimal(0) <= '1';
+                        state3 <= no_flash;
                     END IF;
                 WHEN others =>
             END CASE;
@@ -107,17 +108,23 @@ BEGIN
                 refresh <= refresh + 1;
             END IF;
             IF refresh = "00" THEN
-                display_cathode(27 DOWNTO 21) <= 7segleft1;
-                display_anode(4) <= '1';
-            ELSIF refresh = "01" THEN
-                display_cathode(20 DOWNTO 14) <= 7segleft0;
+                display_cathode <= 7segleft1;
                 display_anode(3) <= '1';
-            ELSIF refresh = "10" THEN
-                display_cathode(13 DOWNTO 7) <= 7segright1;
+            ELSIF refresh = "01" THEN
+                display_cathode <= 7segleft0;
                 display_anode(2) <= '1';
-            ELSE
-                display_cathode(6 DOWNTO 0) <= 7segright0;
+            ELSIF refresh = "10" THEN
+                display_cathode <= 7segright1;
                 display_anode(1) <= '1';
+            ELSE
+                display_cathode <= 7segright0;
+                display_anode(0) <= '1';
+                CASE state3 is
+                    WHEN flash =>
+                        display_decimal <= '0';
+                    WHEN no_flash =>
+                        display_decimal <= '1';
+                END CASE;
             END IF;
 
 
@@ -125,33 +132,146 @@ BEGIN
     
     PROCESS(clk_1ms)
         BEGIN
-            CASE state IS
-                WHEN time_hour_min =>
-                    IF rising_edge(b1) THEN
-                        state <= change_hour1;
-                        state1 <= change_time;
-                    ELSIF rising_edge(b4) THEN
-                        state <= time_min_sec;
+            CASE state2 IS
+                WHEN idle =>
+                    CASE state IS
+                        WHEN time_hour_min =>
+                            IF b1='1' THEN
+                                state <= change_hour1;
+                                state1 <= change_time;
+                                state2 <= init1;
+                            ELSIF b4 = '1' THEN
+                                state <= time_min_sec;
+                                state2 <= init4;
+                            END IF;
+                        WHEN time_min_sec =>
+                            IF b1 <= '1' THEN
+                                state <= change_hour1;
+                                state1 <= change_time;
+                                state2 <= init1;
+                            ELSIF b4 = '1' THEN
+                                state <= time_hour_min;
+                                state2 <= init4;
+                            END IF;
+                        WHEN change_hour1 =>
+                            IF b1 = '1' THEN
+                                state <= time_hour_min;
+                                state1 <= display_time;
+                                state2 <= init1;
+                            ELSIF b4 = '1' THEN
+                                state <= change_hour0;
+                                state2 <= init4;
+                            ELSIF b2 = '1' THEN
+                                IF hour > "0010011" THEN
+                                    hour <= hour - "0010100";
+                                ELSIF hour < "0001110" THEN
+                                    hour <= hour + "0001010";
+                                ELSE
+                                    hour <= "0010100";
+                                END IF;
+                                state2 <= init2;
+                            ELSIF b3 = '1' THEN
+                                IF hour > "0001001"
+                                    hour <= hour - "0001010";
+                                ELSIF hour < "0000100" THEN
+                                    hour <= hour + "0010100";
+                                ELSE
+                                    hour <= "0010100";
+                                END IF;
+                                state2 <= init3;
+                            END IF;
+                        WHEN change_hour0 =>
+                            IF b1 = '1' THEN
+                                state <= time_hour_min;
+                                state1 <= display_time;
+                                state2 <= init1;
+                            ELSIF b4 = '1' THEN
+                                state <= change_min1;
+                                state2 <= init4;
+                            ELSIF b2 = '1' THEN
+                                IF hour = "0010111" THEN
+                                    hour <= "0010100";
+                                ELSIF left0 = "0001001" THEN
+                                    hour <= hour - "0001001";
+                                ELSE
+                                    hour <= hour + '1';
+                                END IF;
+                                state2 <= init2;
+                            ELSIF b3 = '1' THEN
+                                IF hour = "0010100" THEN
+                                    hour <= "0010111";
+                                ELSIF left0 = "0000000" THEN
+                                    hour <= hour + "0001001";
+                                ELSE
+                                    hpur <= hour -'1';
+                                END IF;
+                                state2 <= init3;
+                            END IF;
+                        WHEN change_min1 =>
+                            IF b1 = '1' THEN
+                                state <= time_hour_min;
+                                state1 <= display_time;
+                                state2 <= init1;
+                            ELSIF b4 = '1' THEN
+                                state <= change_min0;
+                                state2 <= init4;
+                            ELSIF b2 = '1' THEN
+                                IF minute > "110001" THEN
+                                    minute <= minute - "0110010";
+                                ELSE
+                                    minute <= minute + "0010100";
+                                END IF;
+                                state2 <= init2;
+                            ELSIF b3 ='1' THEN
+                                IF minute < "0010100" THEN
+                                    minute <= minute + "0110010";
+                                ELSE
+                                    minute <= minute - "0010100";
+                                END IF;
+                                state2 <= init3;
+                            END IF;
+                        WHEN change_min0 =>
+                            IF b1 = '1' THEN
+                                state <= time_hour_min;
+                                state1 <= display_time;
+                                state2 <= init1;
+                            ELSIF b4 = '1' THEN
+                                state <= change_hour1;
+                                state2 <= init4;
+                            ELSIF b2 = '1' THEN
+                                IF right0 = "1001" THEN
+                                    minute <= minute - "0001001";
+                                ELSE
+                                    minute <= minute + '1';
+                                END IF;
+                                state2 <= init2;
+                            ELSIF b3 ='1' THEN
+                                IF right0 = "0000" THEN
+                                    minute <= minute + "0001001";
+                                ELSE
+                                    minute <= minute + '1';
+                                END IF;
+                                state2 <= init3;
+                            END IF;
+                    END CASE;
+                WHEN init1 =>
+                    IF b1 = '0' THEN
+                        state2 <= idle;
                     END IF;
-                WHEN time_min_sec =>
-                    IF rising_edge(b1) THEN
-                        state <= change_hour1;
-                        state1 <= change_time;
-                    ELSIF rising_edge(b4) THEN
-                        state <= time_hour_min;
+                WHEN init2 =>
+                    IF b2 = '0' THEN
+                        state2 <= idle;
                     END IF;
-                WHEN change_hour1 THEN
-                    IF rising_edge(b1) THEN
-                        state <= time_hour_min;
-                        state1 <= display_time;
-                    ELSIF rising_edge(b4) THEN
-                        state <= change_hour0;
-                    ELSIF rising_edge(b2) THEN
-                        IF hour > "0010011" THEN
-                            hour <= hour - "010100";
-                        ELSIF hour < "0001110" THEN
-                            hour <= hour + "0001010";
-                        ELSE
+                WHEN init3 =>
+                    IF b3 = '0' THEN
+                        state2 <= idle;
+                    END IF;
+                WHEN init4 =>
+                    IF b4 = '0' THEN
+                        state2 <= idle;
+                    END IF;
+            END CASE;
+        END PROCESS;
     
     WITH state1 SELECT
         left <=     minute WHEN time_min_sec,
