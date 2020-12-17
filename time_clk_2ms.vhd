@@ -10,7 +10,7 @@ ENTITY time_clk_2ms IS
 END time_clk_2ms;
 
 ARCHITECTURE logic of time_clk_2ms IS
-    SIGNAL count    :       std_logic_vector(14 DOWNTO 0) := '0';
+    SIGNAL count    :       unsigned(14 DOWNTO 0) := '0';
     SIGNAL temp     :       std_logic := '0';
 BEGIN
     PROCESS(clk)
@@ -20,8 +20,10 @@ BEGIN
                     count <= "000000000000000";
                     IF (temp = '0') THEN
                         clk_2ms <= '1';
+                        temp <= '1';
                     ELSE
                         clk_2ms <= '0';
+                        temp <= '0';
                     END IF;
                 ELSE 
                     count <= count + 1;
@@ -29,3 +31,4 @@ BEGIN
             END IF;
         END PROCESS;
 END logic;
+END architecture;
