@@ -16,8 +16,8 @@ BEGIN
     PROCESS(clk)
         BEGIN
             IF (rising_edge(clk)) THEN
-                IF (count = "10011100010000000") THEN 
-                    count <= "00000000000000000";
+                IF (count = "1001110000111111") THEN 
+                    count <="0000000000000000";
                     IF (temp = '0') THEN
                         clk_8ms <= '1';
                         temp <= '1';
@@ -31,4 +31,4 @@ BEGIN
             END IF;
         END PROCESS;
 END logic;
-END architecture;
+

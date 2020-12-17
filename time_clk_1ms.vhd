@@ -31,4 +31,4 @@ BEGIN
             END IF;
         END PROCESS;
 END logic;
-END architecture;
+
