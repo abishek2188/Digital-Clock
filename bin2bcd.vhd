@@ -4,7 +4,8 @@ use ieee.numeric_std.all;
 entity bin2bcd is
     port (  bin  : in  unsigned (6 downto 0);
             bcd1 : out unsigned (3 downto 0);
-            bcd2 : out unsigned (3 downto 0);
+            bcd2 : out unsigned (3 downto 0)
+    );
 end bin2bcd;
 
 architecture logic of bin2bcd is 
@@ -31,4 +32,4 @@ begin
             bcd2 <= bcd(7  downto 4) ;
             bcd1 <= bcd(3  downto 0) ;
     end process ;
-end architecture;
+end logic;

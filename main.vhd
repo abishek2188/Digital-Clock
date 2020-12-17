@@ -6,8 +6,9 @@ ENTITY main IS
     PORT (
         clk             :   IN  std_logic;
         b1, b2, b3, b4  :   IN  std_logic;
-        display    :   OUT unsigned(27 DOWNTO 0);
-        display_decimal :   OUT unsigned(3 DOWNTO 0)
+        display_cathode    :   OUT unsigned(27 DOWNTO 0);
+        display_decimal :   OUT unsigned(3 DOWNTO 0) := "1111";
+        display_anode :   OUT unsigned(3 DOWNTO 0) := "0000" 
     );
 END main;
 
@@ -49,8 +50,8 @@ ARCHITECTURE logic OF main is
     
     TYPE state_type IS (time_hour_min, time_min_sec, change_hour, change_min);
     TYPE state_type1 IS (display_time, change_time);
-    SIGNAL state1                                               :   state_type1;
-    SIGNAL state                                                :   state_type;
+    SIGNAL state1                                               :   state_type1 := display_time;
+    SIGNAL state                                                :   state_type := time_hour_min;
     SIGNAL clk_1ms                                              :   std_logic := '0';
     SIGNAL clk_1s                                               :   std_logic := '0';
     SIGNAL clk_2ms                                               :   std_logic := '0';
@@ -83,22 +84,36 @@ BEGIN
                     END IF;
                 WHEN change_time =>
             END CASE;
+            CASE state IS
+                WHEN time_hour_min =>
+                    if rising_edge(clk_1s) THEN
+                        display_decimal(0) <= '0';
+                    ELSE
+                        display_decimal(0) <= '1';
+                    END IF;
+                WHEN others =>
+            END CASE;
         END PROCESS;
     PROCESS(clk_8ms) --display module
         BEGIN
+        display_anode <= "0000";
             IF refresh = "11" THEN
                 refresh <= "00"
             ELSE 
                 refresh <= refresh + 1;
             END IF;
             IF refresh = "00" THEN
-                display(27 DOWNTO 21) <= 7segleft1;
+                display_cathode(27 DOWNTO 21) <= 7segleft1;
+                display_anode(4) <= '1';
             ELSIF refresh = "01" THEN
-                display(20 DOWNTO 14) <= 7segleft0;
+                display_cathode(20 DOWNTO 14) <= 7segleft0;
+                display_anode(3) <= '1';
             ELSIF refresh = "10" THEN
-                display(13 DOWNTO 7) <= 7segright1;
+                display_cathode(13 DOWNTO 7) <= 7segright1;
+                display_anode(2) <= '1';
             ELSE
-                display(6 DOWNTO 0) <= 7segright0;
+                display_cathode(6 DOWNTO 0) <= 7segright0;
+                display_anode(1) <= '1';
             END IF;
 
 
