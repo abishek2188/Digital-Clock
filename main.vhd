@@ -43,8 +43,7 @@ ARCHITECTURE logic OF main is
     COMPONENT bcd_to_7seg_display is
         PORT(
 		bcd				:	IN		STD_LOGIC_VECTOR(3 DOWNTO 0);		--number to display in BCD
-        display_7seg	:	OUT	STD_LOGIC_VECTOR(6 DOWNTO 0);	--outputs to seven segment display
-        clk_8ms         :   IN      STD_LOGIC
+        display_7seg	:	OUT	STD_LOGIC_VECTOR(6 DOWNTO 0)	--outputs to seven segment display
         );
     END COMPONENT;
     
@@ -112,10 +111,10 @@ BEGIN
                     hour WHEN others;
     create_bin2bcd_left: bin2bcd port map (left, left0, left1);
     create_bin2bcd_right: bin2bcd port map (right, right0, right1);
-    drive_display_left1: bcd_to_7seg_display port map(left1, 7segleft1, clk_8ms);
-    drive_display_left0: bcd_to_7seg_display port map(left0, 7segleft0, clk_8ms);
-    drive_display_right1: bcd_to_7seg_display port map(right1, 7segright1, clk_8ms);
-    drive_display_right0: bcd_to_7seg_display port map(right0, 7segright0, clk_8ms);
+    drive_display_left1: bcd_to_7seg_display port map(left1, 7segleft1);
+    drive_display_left0: bcd_to_7seg_display port map(left0, 7segleft0);
+    drive_display_right1: bcd_to_7seg_display port map(right1, 7segright1);
+    drive_display_right0: bcd_to_7seg_display port map(right0, 7segright0);
 
                     
         

@@ -4,8 +4,7 @@ USE ieee.std_logic_1164.all;
 ENTITY bcd_to_7seg_display IS
 	PORT(
 		bcd				:	IN		STD_LOGIC_VECTOR(3 DOWNTO 0);		--number to display in BCD
-        display_7seg	:	OUT	STD_LOGIC_VECTOR(6 DOWNTO 0);	--outputs to seven segment display
-        clk_8ms         :   IN      STD_LOGIC
+        display_7seg	:	OUT	STD_LOGIC_VECTOR(6 DOWNTO 0)	--outputs to seven segment display
     );
 END bcd_to_7seg_display;
 
@@ -13,7 +12,7 @@ ARCHITECTURE logic OF bcd_to_7seg_display IS
 BEGIN
 
 	--map bcd input to desired output segments
-    PROCESS(bcd, clk_8ms)
+    PROCESS(bcd)
         CASE bcd IS
             WHEN "0000" => 	display_7seg <=    "0000001";
             WHEN "0001" => 	display_7seg <=    "1001111";
