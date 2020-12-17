@@ -48,8 +48,10 @@ ARCHITECTURE logic OF main is
         );
     END COMPONENT;
     
-    TYPE state_type IS (time_hour_min, time_min_sec, change_hour, change_min);
+    TYPE state_type IS (time_hour_min, time_min_sec, change_hour1, change_hour0, change_min1, change_min0);
     TYPE state_type1 IS (display_time, change_time);
+    TYPE state_type2 IS (idle, init1, init2, init3, init4);
+    SIGNAL state2                                               :   state_type2 := idle;
     SIGNAL state1                                               :   state_type1 := display_time;
     SIGNAL state                                                :   state_type := time_hour_min;
     SIGNAL clk_1ms                                              :   std_logic := '0';
@@ -64,6 +66,7 @@ BEGIN
     create_1s_clock: time_clk_1s port map (clk, clk_1s);
     create_1ms_clock: time_clk_1ms port map (clk, clk_1ms);
     create_8ms_clock: time_clk_8ms port map (clk, clk_8ms);
+    
     PROCESS(clk_1s) --keeping track of time
         BEGIN
             CASE state1 IS
@@ -94,6 +97,7 @@ BEGIN
                 WHEN others =>
             END CASE;
         END PROCESS;
+    
     PROCESS(clk_8ms) --display module
         BEGIN
         display_anode <= "0000";
@@ -118,6 +122,37 @@ BEGIN
 
 
         END PROCESS;
+    
+    PROCESS(clk_1ms)
+        BEGIN
+            CASE state IS
+                WHEN time_hour_min =>
+                    IF rising_edge(b1) THEN
+                        state <= change_hour1;
+                        state1 <= change_time;
+                    ELSIF rising_edge(b4) THEN
+                        state <= time_min_sec;
+                    END IF;
+                WHEN time_min_sec =>
+                    IF rising_edge(b1) THEN
+                        state <= change_hour1;
+                        state1 <= change_time;
+                    ELSIF rising_edge(b4) THEN
+                        state <= time_hour_min;
+                    END IF;
+                WHEN change_hour1 THEN
+                    IF rising_edge(b1) THEN
+                        state <= time_hour_min;
+                        state1 <= display_time;
+                    ELSIF rising_edge(b4) THEN
+                        state <= change_hour0;
+                    ELSIF rising_edge(b2) THEN
+                        IF hour > "0010011" THEN
+                            hour <= hour - "010100";
+                        ELSIF hour < "0001110" THEN
+                            hour <= hour + "0001010";
+                        ELSE
+    
     WITH state1 SELECT
         left <=     minute WHEN time_min_sec,
                     hour WHEN others;
