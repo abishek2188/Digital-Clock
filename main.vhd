@@ -140,6 +140,7 @@ BEGIN
                                 state <= change_hour1;
                                 state1 <= change_time;
                                 state2 <= init1;
+                                state3 <= no_flash;
                             ELSIF b4 = '1' THEN
                                 state <= time_min_sec;
                                 state2 <= init4;
